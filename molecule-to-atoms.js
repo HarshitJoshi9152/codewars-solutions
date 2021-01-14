@@ -2,8 +2,6 @@
 // Sunday, January 10, 2021 at 12:34:45 AM GMT+5:30 
 // javascript 
 
-const { groupCollapsed } = require("console");
-const { parse } = require("path");
 
 // Molecule to atoms https://www.codewars.com/kata/52f831fa9d332c6591000511 
 // category: algorithms 
@@ -181,15 +179,81 @@ function add_obj(a,b) {
 	// return a;
 }
 
+function parseMolecules(molecule) {
+	let groups = [];
+	let brackets = [];
+	let prev = undefined;
+	for (let i = 0; i < molecule.length; ++i) {
+		let a = molecule[i];
+		// check for number;
+		if (!Number.isNaN(Number(a))) {
+			// multiply with group on top of the stack
+			if (brackets.length !== 0) {
+				// raise full grp by Number(a);
+				// brackets have been opened so raise all...
+				for (let ii of groups[groups.length - 1]) {
+					ii.count *= Number(a);
+				}
+			} else {
+				// find prev in grp and assign number;
+				let l = groups[groups.length] // last group;
+				l[l.length - 1].count *= Number(a); // last item of last group.count *= Number(a);
+			}
+			continue;
+		}
+		if (a == '[' || a == '(') {
+			// brackets start
+			// multiply number with entire grp;
+			brackets.push(a);
+			continue;
+		}
+		if (a == ']' || a == ')') {
+			// brackets close
+			// group is ready to be evaluated in next turn
+			if (a == brackets.pop()) {
+				// no error correct brackets hence correct formula
+			} else {
+				throw new Error(`invalid formula; bad brackets at index ${i}`);
+			}
+			continue;
+		}
+		// now it must be an atom
+		// also check if prev + a == "Mg"; // etc;
+		if (groups.length == 0) {
+			groups.push([a]);
+			continue;
+		}
+		// else
+		groups[groups.length - 1].push({name:a, count:1});
+	}
+}
+
+
 var fremySalt = 'K4[ON(SO3)2]2';
 let grps = parseMolecules(fremySalt); // return {K: 4, O: 14, N: 2, S: 4}
 
+log(grps);
+/*
 for (const grp of grps.slice(1)) {
 	log(eval_grp(grp))
 }
-
+*/
 // var water = 'H2O';
 // console.log(parseMolecules(water));
 
+// IDEA :: EVERYTHING IS A GROUP.
 
 // this was more difficult for me
+// fromula -> K4[ON(SO3)2]2
+// k no brackets (default 1) * [,number]
+// bracket start category start
+// store O default // todo on bracket completion
+// store N default // todo on bracket completion
+// bracket start new category start
+// store S default // todo on bracket completion
+// store O default * number 
+// bracket close will a number always be here ?
+// 	if so multiply the default count of previous grp with num
+// 	and integrate into previous group
+// 	bracket close multiply defaults with num
+// 	return group....
