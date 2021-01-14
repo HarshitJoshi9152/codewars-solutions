@@ -185,15 +185,21 @@ function parseMolecules(molecule) {
 	let prev = undefined;
 	for (let i = 0; i < molecule.length; ++i) {
 		let a = molecule[i];
+		log('\x1b[91m',i, a,"\x1b[0m")
 		// check for number;
 		if (!Number.isNaN(Number(a))) {
-			// multiply with group on top of the stack
-			if (brackets.length !== 0) {
+			// multiply with group on top of the stack -- on do it only if brackets have been previously opened.
+			if (groups.length !== 0) {
 				// raise full grp by Number(a);
 				// brackets have been opened so raise all...
 				for (let ii of groups[groups.length - 1]) {
 					ii.count *= Number(a);
 				}
+				// also unite/add these counts in the group delow this grp.
+				// TODO: time to change the obj structure
+				// for (let ii of groups[groups.length - 2]) {
+				// 	ii.name
+				// }
 			} else {
 				// find prev in grp and assign number;
 				let l = groups[groups.length] // last group;
@@ -205,14 +211,28 @@ function parseMolecules(molecule) {
 			// brackets start
 			// multiply number with entire grp;
 			brackets.push(a);
+			groups.push([]);
 			continue;
 		}
-		if (a == ']' || a == ')') {
+		let _sqr = true;
+		let _round = true;
+		if (a == ']' || (_sqr = false) || a == ')' || (_round = false)) {
 			// brackets close
 			// group is ready to be evaluated in next turn
-			if (a == brackets.pop()) {
-				// no error correct brackets hence correct formula
-			} else {
+			let popped_bracket = brackets.pop();
+			if (_sqr) {
+				if (popped_bracket == '[') {
+					// no error correct brackets hence correct formula
+					// union the groups
+				}
+			}
+			if (_round) {
+				if (popped_bracket == '(') {
+					// no error correct brackets hence correct formula
+					// union the groups
+				}
+			}
+			else {
 				throw new Error(`invalid formula; bad brackets at index ${i}`);
 			}
 			continue;
@@ -226,6 +246,7 @@ function parseMolecules(molecule) {
 		// else
 		groups[groups.length - 1].push({name:a, count:1});
 	}
+	return groups[groups.length - 1]
 }
 
 
