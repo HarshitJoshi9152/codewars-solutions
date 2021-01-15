@@ -182,14 +182,14 @@ function add_obj(a,b) {
 function parseMolecules(molecule) {
 	let groups = [];
 	let brackets = [];
-	let prev = undefined;
+	let recentGrpClosed = false;
 	for (let i = 0; i < molecule.length; ++i) {
 		let a = molecule[i];
-		log('\x1b[91m',i, a,"\x1b[0m")
+		// log('\x1b[91m',i, a,"\x1b[0m")
 		// check for number;
 		if (!Number.isNaN(Number(a))) {
 			// multiply with group on top of the stack -- on do it only if brackets have been previously opened.
-			if (groups.length !== 0) {
+			if (recentGrpClosed) {
 				// raise full grp by Number(a);
 				// brackets have been opened so raise all...
 				for (let ii of groups[groups.length - 1]) {
@@ -200,9 +200,26 @@ function parseMolecules(molecule) {
 				// for (let ii of groups[groups.length - 2]) {
 				// 	ii.name
 				// }
+				// valB => valBelow
+				// try commenting the next block
+				groups[groups.length - 1].map( (atomT) => {
+					let atomAdded = false;
+					groups[groups.length - 2].forEach( (atomB) => {
+						if(atomT.name == atomB.name) {
+							atomB.count += atomT.count;
+							atomAdded = true;
+						}
+					})
+					// the atom count has not been added because it did not exist in the previous group
+					if (!atomAdded) {
+						groups[groups.length - 2].push(atomT)
+					}
+				});
+				groups.pop();
+
 			} else {
 				// find prev in grp and assign number;
-				let l = groups[groups.length] // last group;
+				let l = groups[groups.length - 1] // last group;
 				l[l.length - 1].count *= Number(a); // last item of last group.count *= Number(a);
 			}
 			continue;
@@ -220,6 +237,7 @@ function parseMolecules(molecule) {
 			// brackets close
 			// group is ready to be evaluated in next turn
 			let popped_bracket = brackets.pop();
+			recentGrpClosed = true;
 			if (_sqr) {
 				if (popped_bracket == '[') {
 					// no error correct brackets hence correct formula
@@ -240,7 +258,7 @@ function parseMolecules(molecule) {
 		// now it must be an atom
 		// also check if prev + a == "Mg"; // etc;
 		if (groups.length == 0) {
-			groups.push([a]);
+			groups.push([{name:a, count:1}]);
 			continue;
 		}
 		// else
