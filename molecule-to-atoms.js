@@ -34,155 +34,12 @@ Note that brackets may be **round, square
 or curly** and can also be **nested**. Index after the braces is **optional**. 
 */
 
-/*
-function parseMolecule(formula) {
-	let atomMap = {};
-	let grps = [];
-	let prev_grp = undefined; // or atom
-	for (let i in formula) {
-		let char = formula[i];
-		try {
-			Number(char);
-			// lastGrp += char
-			// eval grp
-			continue;
-		} catch {}
-		if (["[","("].includes(char)) {
-			grpStart = true;
-			grps.push([])
-		} else if (["]",")"].includes(char)) {
-			grpEnd = true;
-			// ok so what if its a group in a group ....
-			prev_grp = grps.pop();
-			// we should eval here too.
-			// next should be a number should it ? not required i guess..
-		}
-		// if char is not any one from above then it is surely an atom
-		if (grpStart) {
-			// if a grp is currently opened then we have to add the atom to its count;
-			grps[grps.length - 1].push(char);
-		}
-		// no grp is there.. and its an atom..
 
-	}
-	return atomMap;
-}
-*/
-
-// function parseMolecule(formula) {
-// 	// so str has 2 parts  1 -> atomName | GrpName and 2 -> count
-// 	let obj = {};
-// 	tail = [];
-// 	for (const i in formula) {
-// 		if (Object.hasOwnProperty.call(formula, i)) {
-// 			const char = formula[i];
-// 			if (!['[',']','(',')','1','2','3',"4","5","6","7","8",'9'].includes(char)) {
-// 				// its an atom
-
-// 			}
-// 		}
-// 	}
-// }
-
-function parse_molecules(str) {
-	let obj = {}
-	let prev_char = undefined;
-	// let grps = [];
-	for (const char of str) {
-		console.log(char)
-		try {
-			// its a count
-			let count = Number(char)
-			if (Number.isNaN(count)) {
-				throw new Error("not a number")
-			}
-			obj[prev_char] = count;
-			if (prev_char == undefined) {
-				// bad formula
-			}
-			prev_char = undefined
-		} catch {
-			// // regexp
-			// let brace = char.match(/[\(\)\[\]]/)
-			// // if (["[","("].includes(char)) {
-			// // 	// grpStart
-			// // 	grp += char;
-			// // 	unpack_grp(grp)
-			// // }
-			// if (brace[o] == undefined) {
-
-			// }
-			// its an atom
-			obj[char] = 1;
-			prev_char = char;
-		}
-	}
-	return obj;
-}
-
-const log = console.log;
-
-function parseMolecules(str) {
-	let grps_indexes = [...str.matchAll(/[\(\)\[\]]/g)];
-	// useless count lol;
-	let grp_count = 0;
-	let groups = [];
-	// for (let braceObj of grps_indexes) {
-	// 	brace = braceObj[0];
-	// 	if ([')',']'].includes(brace)) {
-	// 		continue;
-	// 	}
-	// 	groups.push()
-	// 	grp_count++;
-	// }
-	for (let i in str) {
-		let char = str[i];
-		if (['(','['].includes(char)) {
-			// group
-			let brace = char;
-			let start = +i;
-			let end = str.lastIndexOf((brace == '(') ? ')' : ']');
-			// there will always be a count next to the group closing brace so..
-			grp = str.slice(start, end + 2);
-			groups.push(grp);
-		}
-	}
-	console.log(groups);
-	return groups;
-	// for (let braceObj of grps_indexes) {
-	return grp_count;
-}
-
-let mem = [];
-function eval_grp(grp) {
-	let count = +grp[grp.length - 1];
-	grp = grp.slice(1, grp.length - 2); // grp excluding []$num
-	if (grp.match(/[\(\[]/) !== null) {
-		// no grp is here.
-		throw new Error();
-	}
-	let parsed = parse_molecules(grp);
-	for (const prop in parsed) {
-		parsed[prop] *= count
-	}
-	return parsed;
-}
-
-function add_obj(a,b) {
-	// lol mutates a object
-	for (let prop in b) {
-		if (!a[prop])
-			a[prop] = b[prop];
-		else
-			a[prop] += b[prop];
-	}
-	// return a;
-}
-
-function parseMolecules(molecule) {
+function parseMolecule(molecule) {
 	let groups = [];
 	let brackets = [];
 	let recentGrpClosed = false;
+	let prev_atom = undefined;
 	for (let i = 0; i < molecule.length; ++i) {
 		let a = molecule[i];
 		// log('\x1b[91m',i, a,"\x1b[0m")
@@ -257,21 +114,156 @@ function parseMolecules(molecule) {
 		}
 		// now it must be an atom
 		// also check if prev + a == "Mg"; // etc;
+		// exceptions [double names atoms] eg Mg
+		
+		let doubles = [
+			"Ac",
+			"Ag",
+			"Al",
+			"Am",
+			"Ar",
+			"As",
+			"At",
+			"Au",
+			"B",
+			"Ba",
+			"Be",
+			"Bh",
+			"Bi",
+			"Bk",
+			"Br",
+			"C",
+			"Ca",
+			"Cd",
+			"Ce",
+			"Cf",
+			"Cl",
+			"Cm",
+			"Co",
+			"Cr",
+			"Cs",
+			"Cu",
+			"Ds",
+			"Db",
+			"Dy",
+			"Er",
+			"Es",
+			"Eu",
+			"F",
+			"Fe",
+			"Fm",
+			"Fr",
+			"Ga",
+			"Gd",
+			"Ge",
+			"H",
+			"He",
+			"Hf",
+			"Hg",
+			"Ho",
+			"Hs",
+			"I",
+			"In",
+			"Ir",
+			"K",
+			"Kr",
+			"La",
+			"Li",
+			"Lr",
+			"Lu",
+			"Md",
+			"Mg",
+			"Mn",
+			"Mo",
+			"Mt",
+			"N",
+			"Na",
+			"Nb",
+			"Nd",
+			"Ne",
+			"Ni",
+			"No",
+			"Np",
+			"O",
+			"Os",
+			"P",
+			"Pa",
+			"Pb",
+			"Pd",
+			"Pm",
+			"Po",
+			"Pr",
+			"Pt",
+			"Pu",
+			"Ra",
+			"Rb",
+			"Re",
+			"Rf",
+			"Rg",
+			"Rh",
+			"Rn",
+			"Ru",
+			"S",
+			"Sb",
+			"Sc",
+			"Se",
+			"Sg",
+			"Si",
+			"Sm",
+			"Sn",
+			"Sr",
+			"Ta",
+			"Tb",
+			"Tc",
+			"Te",
+			"Th",
+			"Ti",
+			"Tl",
+			"Tm",
+			"U",
+			"V",
+			"W",
+			"Xe",
+			"Y",
+			"Yb",
+			"Zn",
+			"Zr"
+		  ]
+		if (doubles.includes(prev_atom + a)) {
+			console.log("got here")
+			groups[groups.length - 1].pop();
+			groups.push([{name:prev_atom + a, count:1}]);
+			prev_atom = prev_atom + a
+			continue
+			// comehere
+		}
 		if (groups.length == 0) {
 			groups.push([{name:a, count:1}]);
+			prev_atom = a;
 			continue;
 		}
 		// else
 		groups[groups.length - 1].push({name:a, count:1});
+		prev_atom = a;
 	}
-	return groups[groups.length - 1]
+	console.log(groups[groups.length - 1]);
 }
 
 
-var fremySalt = 'K4[ON(SO3)2]2';
-let grps = parseMolecules(fremySalt); // return {K: 4, O: 14, N: 2, S: 4}
+// var formula = 'K4[ON(SO3)2]2';
+// let rslt = parseMolecules(formula); // return {K: 4, O: 14, N: 2, S: 4}
 
-log(grps);
+// log(rslt);
+
+var water = 'H2O';
+parseMolecule(water); // return {H: 2, O: 1}
+
+var magnesiumHydroxide = 'Mg(OH)2';
+parseMolecule(magnesiumHydroxide); // return {Mg: 1, O: 2, H: 2}
+
+var fremySalt = 'K4[ON(SO3)2]2';
+parseMolecule(fremySalt); // return {K: 4, O: 14, N: 2, S: 4}
+
 /*
 for (const grp of grps.slice(1)) {
 	log(eval_grp(grp))
