@@ -40,17 +40,19 @@ function parseMolecule(molecule) {
 	let brackets = [];
 	let recentGrpClosed = false;
 	let prev_atom = undefined;
+	let prev_no = undefined;
 	for (let i = 0; i < molecule.length; ++i) {
 		let a = molecule[i];
 		// log('\x1b[91m',i, a,"\x1b[0m")
 		// check for number;
 		if (!Number.isNaN(Number(a))) {
+			a = (prev_no) ? Number(prev_no + a) : Number(a);
 			// multiply with group on top of the stack -- on do it only if brackets have been previously opened.
 			if (recentGrpClosed) {
-				// raise full grp by Number(a);
+				// raise full grp by a;
 				// brackets have been opened so raise all...
 				for (let ii of groups[groups.length - 1]) {
-					ii.count *= Number(a);
+					ii.count *= a;
 				}
 				// also unite/add these counts in the group delow this grp.
 				// TODO: time to change the obj structure
@@ -73,15 +75,17 @@ function parseMolecule(molecule) {
 					}
 				});
 				groups.pop();
-
 			} else {
 				// find prev in grp and assign number;
 				let l = groups[groups.length - 1] // last group;
-				l[l.length - 1].count *= Number(a); // last item of last group.count *= Number(a);
+				l[l.length - 1].count *= a; // last item of last group.count *= a;
 			}
+			prev_no = String(a);
 			continue;
 		}
-		if (a == '[' || a == '(') {
+		// if we have reached till here that means that a is not a number;
+		prev_no = false;
+		if (a == '[' || a == '(' || a == '{') {
 			// brackets start
 			// multiply number with entire grp;
 			brackets.push(a);
@@ -90,7 +94,8 @@ function parseMolecule(molecule) {
 		}
 		let _sqr = true;
 		let _round = true;
-		if (a == ']' || (_sqr = false) || a == ')' || (_round = false)) {
+		let _curly = true;
+		if (a == ']' || (_sqr = false) || a == ')' || (_round = false) || a == '}' || (_curly = false)) {
 			// brackets close
 			// group is ready to be evaluated in next turn
 			let popped_bracket = brackets.pop();
@@ -107,6 +112,12 @@ function parseMolecule(molecule) {
 					// union the groups
 				}
 			}
+			if (_curly) {
+				if (popped_bracket == '{') {
+					// no error correct brackets hence correct formula
+					// union the groups
+				}
+			}
 			else {
 				throw new Error(`invalid formula; bad brackets at index ${i}`);
 			}
@@ -117,118 +128,18 @@ function parseMolecule(molecule) {
 		// exceptions [double names atoms] eg Mg
 		
 		let doubles = [
-			"Ac",
-			"Ag",
-			"Al",
-			"Am",
-			"Ar",
-			"As",
-			"At",
-			"Au",
-			"B",
-			"Ba",
-			"Be",
-			"Bh",
-			"Bi",
-			"Bk",
-			"Br",
-			"C",
-			"Ca",
-			"Cd",
-			"Ce",
-			"Cf",
-			"Cl",
-			"Cm",
-			"Co",
-			"Cr",
-			"Cs",
-			"Cu",
-			"Ds",
-			"Db",
-			"Dy",
-			"Er",
-			"Es",
-			"Eu",
-			"F",
-			"Fe",
-			"Fm",
-			"Fr",
-			"Ga",
-			"Gd",
-			"Ge",
-			"H",
-			"He",
-			"Hf",
-			"Hg",
-			"Ho",
-			"Hs",
-			"I",
-			"In",
-			"Ir",
-			"K",
-			"Kr",
-			"La",
-			"Li",
-			"Lr",
-			"Lu",
-			"Md",
-			"Mg",
-			"Mn",
-			"Mo",
-			"Mt",
-			"N",
-			"Na",
-			"Nb",
-			"Nd",
-			"Ne",
-			"Ni",
-			"No",
-			"Np",
-			"O",
-			"Os",
-			"P",
-			"Pa",
-			"Pb",
-			"Pd",
-			"Pm",
-			"Po",
-			"Pr",
-			"Pt",
-			"Pu",
-			"Ra",
-			"Rb",
-			"Re",
-			"Rf",
-			"Rg",
-			"Rh",
-			"Rn",
-			"Ru",
-			"S",
-			"Sb",
-			"Sc",
-			"Se",
-			"Sg",
-			"Si",
-			"Sm",
-			"Sn",
-			"Sr",
-			"Ta",
-			"Tb",
-			"Tc",
-			"Te",
-			"Th",
-			"Ti",
-			"Tl",
-			"Tm",
-			"U",
-			"V",
-			"W",
-			"Xe",
-			"Y",
-			"Yb",
-			"Zn",
-			"Zr"
-		  ]
+			'Ac', 'Ag', 'Al', 'Am', 'Ar', 'As', 'At', 'Au', 'Ba',
+			'Be', 'Bh', 'Bi', 'Bk', 'Br', 'Ca', 'Cd', 'Ce', 'Cf',
+			'Cl', 'Cm', 'Co', 'Cr', 'Cs', 'Cu', 'Ds', 'Db', 'Dy',
+			'Er', 'Es', 'Eu', 'Fe', 'Fm', 'Fr', 'Ga', 'Gd', 'Ge',
+			'He', 'Hf', 'Hg', 'Ho', 'Hs', 'In', 'Ir', 'Kr', 'La',
+			'Li', 'Lr', 'Lu', 'Md', 'Mg', 'Mn', 'Mo', 'Mt', 'Na',
+			'Nb', 'Nd', 'Ne', 'Ni', 'No', 'Np', 'Os', 'Pa', 'Pb',
+			'Pd', 'Pm', 'Po', 'Pr', 'Pt', 'Pu', 'Ra', 'Rb', 'Re',
+			'Rf', 'Rg', 'Rh', 'Rn', 'Ru', 'Sb', 'Sc', 'Se', 'Sg',
+			'Si', 'Sm', 'Sn', 'Sr', 'Ta', 'Tb', 'Tc', 'Te', 'Th',
+			'Ti', 'Tl', 'Tm', 'Xe', 'Yb', 'Zn', 'Zr'
+		]
 		if (doubles.includes(prev_atom + a)) {
 			console.log("got here")
 			groups[groups.length - 1].pop();
@@ -246,7 +157,17 @@ function parseMolecule(molecule) {
 		groups[groups.length - 1].push({name:a, count:1});
 		prev_atom = a;
 	}
-	console.log(groups[groups.length - 1]);
+	// groups[groups.length - 1].map(obj => [obj.name, obj.count])
+	// console.log(Object.fromEntries(groups[groups.length - 1].map(obj => [obj.name, obj.count])))
+	// unfortunately the above line emits error in codewars.
+	// convert array to object
+	let map = groups[groups.length - 1].map(obj => [obj.name, obj.count]);
+	let obj = {};
+	for (let i of map) {
+		const [key, val] = i;
+		obj[key] = val;
+	}
+	return obj;
 }
 
 
@@ -264,10 +185,19 @@ parseMolecule(magnesiumHydroxide); // return {Mg: 1, O: 2, H: 2}
 var fremySalt = 'K4[ON(SO3)2]2';
 parseMolecule(fremySalt); // return {K: 4, O: 14, N: 2, S: 4}
 
+// getting error on glucose
+let glucose = "C6H12O6";
+console.log(parseMolecule(glucose))
+// DONE
+
+
+
+
 /*
-for (const grp of grps.slice(1)) {
-	log(eval_grp(grp))
-}
+connot parse
+As2{Be4C5[BCo3(CO2)3]2}4Cu5
+{[Co(NH3)4(OH)2]3Co}(SO4)3
+(C5H5)Fe(CO)2CH3
 */
 // var water = 'H2O';
 // console.log(parseMolecules(water));
