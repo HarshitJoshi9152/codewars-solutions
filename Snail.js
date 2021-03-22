@@ -35,6 +35,11 @@ NOTE 2: The 0x0
 const log = console.log;
 
 function snail(grid) {
+	// to cover a few test cases
+	if (grid.length == 1) {
+		return grid[0][0] ? [grid[0][0]] : [];
+	}
+
 	function get_c_right(r, c, limit) {
 		// never reaches limit
 		let l = [];
@@ -70,7 +75,7 @@ function snail(grid) {
 		// i reaches limit :correction
 		let l = [];
 		// we dont want to push the first value since it coinsides with the previous serial
-		let i = r - 1;
+		let i = r;
 		for (i; i > limit; i--) {
 			l.push([i, c]);
 		}
@@ -79,14 +84,19 @@ function snail(grid) {
 		return [l, [i, c]];
 	}
 
+	let seenCells = [];
+
 	function isLastCell(r, c) {
-		return (
-			r == Math.ceil(grid.length / 2) - 1 &&
-			c == Math.ceil(grid[0].length / 2) - 1
-		);
+		// return (
+		// 	r == Math.ceil(grid.length / 2) - 1 &&
+		// 	c == Math.ceil(grid[0].length / 2) - 1
+		// );
+		if (`${r},${c}` in seenCells) {
+			return true;
+		}
 	}
 
-	let [startR, startC] = [0, 0];
+	// let [startR, startC] = [0, 0];
 	let serial = [];
 
 	const center_cell = [Math.ceil(grid.length / 2) - 1][
@@ -96,6 +106,7 @@ function snail(grid) {
 	let last_cell = [R, C];
 	let l = grid.length;
 	while (!isLastCell(R, C)) {
+		log({ seenCells });
 		// loop 4 times and switch directions each time
 		serial.push(grid[R][C]);
 		let start_r = R;
@@ -107,12 +118,24 @@ function snail(grid) {
 					// let coors = [];
 					[coors, [R, C]] = get_c_right(R, C, l - start_c);
 					log({ R, C, coors });
+					// this line is our saviour
+					if (coors.length == 0) {
+						// no this is a premature return for other cases lol;
+						log("right");
+						log({ serial });
+						return serial;
+					}
 					for (coor of coors) {
 						let [r, c] = coor;
+						// if (`${r},${c}` in seenCells) {
+						// 	return serial;
+						// }
+						log(`${r},${c}`);
+						seenCells.push(`${r},${c}`);
 						serial.push(grid[r][c]);
-						if (isLastCell(...coor)) {
-							return serial;
-						}
+						// if (isLastCell(...coor)) {
+						// 	return serial;
+						// }
 					}
 					break;
 				case "left":
@@ -120,12 +143,24 @@ function snail(grid) {
 					// let coors = [];
 					[coors, [R, C]] = get_c_left(R, C, -1 + start_c);
 					log({ R, C, coors });
+					// this line is our saviour
+					if (coors.length == 0) {
+						// no this is a premature return for other cases lol;
+						log("left");
+						log({ serial });
+						return serial;
+					}
 					for (coor of coors) {
 						let [r, c] = coor;
+						// if (`${r},${c}` in seenCells) {
+						// 	return serial;
+						// }
+						log(`${r},${c}`);
+						seenCells.push(`${r},${c}`);
 						serial.push(grid[r][c]);
-						if (isLastCell(...coor)) {
-							return serial;
-						}
+						// if (isLastCell(...coor)) {
+						// 	return serial;
+						// }
 					}
 					break;
 				case "down":
@@ -133,12 +168,24 @@ function snail(grid) {
 					// let coors = [];
 					[coors, [R, C]] = get_r_down(R, C, l - start_r);
 					log({ R, C, coors });
+					// this line is our saviour
+					if (coors.length == 0) {
+						// no this is a premature return for other cases lol;
+						log("down");
+						log({ serial });
+						return serial;
+					}
 					for (coor of coors) {
 						let [r, c] = coor;
+						// if (`${r},${c}` in seenCells) {
+						// 	return serial;
+						// }
+						log(`${r},${c}`);
+						seenCells.push(`${r},${c}`);
 						serial.push(grid[r][c]);
-						if (isLastCell(...coor)) {
-							return serial;
-						}
+						// if (isLastCell(...coor)) {
+						// 	return serial;
+						// }
 					}
 					break;
 				case "up":
@@ -146,12 +193,25 @@ function snail(grid) {
 					// let coors = [];
 					[coors, [R, C]] = get_r_up(R, C, 1 + start_c);
 					log({ R, C, coors });
-					for (coor of coors) {
+					// this line is our saviour
+					if (coors.length == 0) {
+						// no this is a premature return for other cases lol;
+						log("up");
+						log({ serial });
+						return serial;
+					}
+					for (coor of coors.slice(0, coors.length - 1)) {
 						let [r, c] = coor;
+						// hmmm i forgot this wouldnt work because of our limit system
+						// if (`${r},${c}` in seenCells) {
+						// 	return serial;
+						// }
+						log(`${r},${c}`);
+						seenCells.push(`${r},${c}`);
 						serial.push(grid[r][c]);
-						if (isLastCell(...coor)) {
-							return serial;
-						}
+						// if (isLastCell(...coor)) {
+						// 	return serial;
+						// }
 					}
 					break;
 
@@ -161,25 +221,24 @@ function snail(grid) {
 		}
 		// pushing last cell left by UP_FUNC idkwhy will fix that later lol
 		serial.push(grid[R][C]);
+		if (`${R},${C}` in seenCells) {
+			return serial;
+		}
 		// shifting to right
 		[R, C] = [R, C + 1];
 		// log("new cycle", R, C);
 		// log({ serial });
 		// return "debugging ";
-		if (isLastCell(R, C)) {
-			serial.push(grid[R][C]);
+		if (`${R},${C}` in seenCells) {
 			return serial;
 		}
+		// if (isLastCell(R, C)) {
+		// 	serial.push(grid[R][C]);
+		// 	return serial;
+		// }
 	}
+	return serial;
 }
-
-console.log(
-	snail([
-		[1, 2, 3],
-		[4, 5, 6],
-		[7, 8, 9]
-	])
-);
 
 function get_c_right(r, c, limit) {
 	// never reaches limit
@@ -229,8 +288,8 @@ function get_r_up(r, c, limit) {
 // console.log(
 let result = snail([
 	[1, 2, 3, 4, 5],
-	[6, 7, 8, 9, 10], // 6 missing
-	[11, 12, 13, 14, 15], // 12 missing up last
+	[6, 7, 8, 9, 10],
+	[11, 12, 13, 14, 15],
 	[16, 17, 18, 19, 20],
 	[21, 22, 23, 24, 25]
 ]);
@@ -252,7 +311,7 @@ sol = [
 	21,
 	16,
 	11,
-	6, // dicrepency
+	6,
 	7,
 	8,
 	9,
@@ -260,8 +319,13 @@ sol = [
 	19,
 	18,
 	17,
-	12, // dicrepency
+	12,
 	13
 ];
 log(result);
 log(JSON.stringify(result) === JSON.stringify(sol));
+
+// for this case the fault lies in center estimation
+// to determine if this is last cell:
+// keep list of all cells we have looped over in memory
+// if current cell was in memory then previous cell must be the last ??
