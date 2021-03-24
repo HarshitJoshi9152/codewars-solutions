@@ -40,6 +40,18 @@ function snail(grid) {
 		return grid[0][0] ? [grid[0][0]] : [];
 	}
 
+	let seenCells = [];
+
+	function isLastCell(r, c) {
+		// return (
+		// 	r == Math.ceil(grid.length / 2) - 1 &&
+		// 	c == Math.ceil(grid[0].length / 2) - 1
+		// );
+		if (`${r},${c}` in seenCells) {
+			return true;
+		}
+	}
+
 	function get_c_right(r, c, limit) {
 		// never reaches limit
 		let l = [];
@@ -82,18 +94,6 @@ function snail(grid) {
 		// todo wait we shouldnt push the last one...!!! [its the starting nah]
 		// l.pop();
 		return [l, [i, c]];
-	}
-
-	let seenCells = [];
-
-	function isLastCell(r, c) {
-		// return (
-		// 	r == Math.ceil(grid.length / 2) - 1 &&
-		// 	c == Math.ceil(grid[0].length / 2) - 1
-		// );
-		if (`${r},${c}` in seenCells) {
-			return true;
-		}
 	}
 
 	// let [startR, startC] = [0, 0];
@@ -286,13 +286,135 @@ function get_r_up(r, c, limit) {
 // todo the limts that i am giving are hard coded SHITTT
 
 // console.log(
-let result = snail([
+// let result = snail([
+// 	[1, 2, 3, 4, 5],
+// 	[6, 7, 8, 9, 10],
+// 	[11, 12, 13, 14, 15],
+// 	[16, 17, 18, 19, 20],
+// 	[21, 22, 23, 24, 25]
+// ]);
+// // );
+
+// sol = [
+// 	1,
+// 	2,
+// 	3,
+// 	4,
+// 	5,
+// 	10,
+// 	15,
+// 	20,
+// 	25,
+// 	24,
+// 	23,
+// 	22,
+// 	21,
+// 	16,
+// 	11,
+// 	6,
+// 	7,
+// 	8,
+// 	9,
+// 	14,
+// 	19,
+// 	18,
+// 	17,
+// 	12,
+// 	13
+// ];
+// log(result);
+// log(JSON.stringify(result) === JSON.stringify(sol));
+
+// for this case the fault lies in center estimation
+// to determine if this is last cell:
+// keep list of all cells we have looped over in memory
+// if current cell was in memory then previous cell must be the last ??
+
+function snail(grid) {
+	if (grid.length == 1) {
+		return grid[0][0] ? [grid[0][0]] : [];
+	}
+
+	let snail = [];
+	let l = grid.length;
+	let [startR, startC] = [0, 0];
+	let [r, c] = [0, 0];
+
+	while (grid[r][c] !== null) {
+		snail.push(grid[r][c]);
+		let i;
+		// right
+		// we dont want to push the first value since it coinsides with the previous serial
+		i = c + 1;
+		for (i; i < l - startC; i++) {
+			if (grid[r][i] == null) {
+				// complete
+				return snail;
+			}
+			log("lol");
+			snail.push(grid[r][i]);
+			grid[r][i] = null;
+		}
+		c = i - 1;
+		// down
+
+		i = r + 1;
+		for (i; i < l - startR; i++) {
+			if (grid[i][c] == null) {
+				return snail;
+			}
+			log("lol");
+			snail.push(grid[i][c]);
+			grid[i][c] = null;
+		}
+		r = i - 1;
+		// left
+		// we dont want to push the first value since it coinsides with the previous serial
+		i = c - 1;
+		for (i; i > -1 + startC; i--) {
+			if (grid[r][i] == null) {
+				// complete {
+				return snail;
+			}
+			snail.push(grid[r][i]);
+			grid[r][i] = null;
+		}
+
+		c = i + 1; // to turn -1 to 0;
+		// up
+		i = r - 1;
+		log({ i, startR, c });
+		for (i; i > startR; i--) {
+			if (grid[i][c] == null) {
+				// complete
+				log("lolUP");
+				return snail;
+			}
+			if (i === startR && c == startC) {
+				continue;
+			}
+			snail.push(grid[i][c]);
+			grid[i][c] = null;
+		}
+		log("sadjsa");
+		log(snail);
+
+		r = i + 1;
+		[startR, startC] = [startR + 1, startC + 1];
+		[r, c] = [startR, startC];
+	}
+	return snail;
+}
+
+q2 = [
 	[1, 2, 3, 4, 5],
 	[6, 7, 8, 9, 10],
 	[11, 12, 13, 14, 15],
 	[16, 17, 18, 19, 20],
 	[21, 22, 23, 24, 25]
-]);
+];
+
+let result = snail(q2);
 // );
 
 sol = [
@@ -325,7 +447,4 @@ sol = [
 log(result);
 log(JSON.stringify(result) === JSON.stringify(sol));
 
-// for this case the fault lies in center estimation
-// to determine if this is last cell:
-// keep list of all cells we have looped over in memory
-// if current cell was in memory then previous cell must be the last ??
+// nice !!
